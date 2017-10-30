@@ -68,6 +68,9 @@ var Utils = {
              *  if the status is 404, resend the
              *  XMLHttpRequest to get 404 page and prevent
              *  the 404 issue
+             *  @private
+             *  @param  {Boolean} errorLoaded
+             *  to prevent loading loop
              */
             if (req.errorLoaded !== true) {
               const errorUrl = window.location.protocol + '//' + window.location.host + errorPageUrl
