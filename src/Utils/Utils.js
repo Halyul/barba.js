@@ -6,6 +6,13 @@
  */
 var Utils = {
   /**
+   * 404 page setting, by default, the 404 page locates in /404/index.html, you can change the path by using `Barba.Utils.errorPageUrl = '/path/to/404'`
+   * @type {String}
+   * @default
+   */
+  errorPageUrl: '/404/index.html',
+
+  /**
    * Return the current url
    *
    * @memberOf Barba.Utils
@@ -49,13 +56,33 @@ var Utils = {
   xhr: function(url) {
     var deferred = this.deferred();
     var req = new XMLHttpRequest();
+    const errorPageUrl = this.errorPageUrl
 
     req.onreadystatechange = function() {
       if (req.readyState === 4) {
         if (req.status === 200) {
           return deferred.resolve(req.responseText);
         } else {
-          return deferred.reject(new Error('xhr: HTTP code is not 200'));
+          if (req.status === 404) {
+            /**
+             *  if the status is 404, resend the
+             *  XMLHttpRequest to get 404 page and prevent
+             *  the 404 issue
+             */
+            if (req.errorLoaded !== true) {
+              const errorUrl = window.location.protocol + '//' + window.location.host + errorPageUrl
+              req.errorLoaded = true
+              req.open('GET', errorUrl);
+              req.timeout = this.xhrTimeout;
+              req.setRequestHeader('x-barba', 'yes');
+              req.send();
+            } else {
+              alert('xhr: HTTP code is 404, but cannt find the 404 page')
+              window.history.back();
+            }
+          } else {
+            return deferred.reject(new Error('xhr: HTTP code is not 200'));
+          }
         }
       }
     };
